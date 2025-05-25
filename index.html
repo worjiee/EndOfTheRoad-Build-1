@@ -191,7 +191,7 @@
         background: url('TemplateData/progress-bar-full-dark.png') no-repeat center / contain;
       }
 
-      /* Footer styles */
+      /* Footer styles - Hidden after loading */
       #unity-footer {
         position: absolute;
         bottom: 10px;
@@ -201,6 +201,13 @@
         align-items: center;
         gap: 10px;
         z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      /* Show footer only during loading */
+      #unity-footer.loading {
+        opacity: 1;
       }
       
       #unity-logo-title-footer {
@@ -279,7 +286,7 @@
         </div>
       </div>
       <div id="unity-warning"></div>
-      <div id="unity-footer">
+      <div id="unity-footer" class="loading">
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">End of the Road</div>
@@ -571,7 +578,10 @@
         }).then((unityInstance) => {
           document.querySelector("#unity-loading-bar").style.display = "none";
           
-          // Setup fullscreen button
+          // Hide the footer once game loads
+          document.querySelector("#unity-footer").classList.remove("loading");
+          
+          // Setup fullscreen button (though it's now hidden)
           document.querySelector("#unity-fullscreen-button").onclick = () => {
             enterFullscreen();
           };
