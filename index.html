@@ -61,23 +61,32 @@
         background-color: #000;
       }
 
-      /* Mobile-specific adjustments */
+      /* Universal mobile adjustments for all devices */
       @media screen and (max-width: 768px) {
         #unity-container {
-          /* Ensure full viewport coverage on mobile */
-          width: 100vw;
-          height: 100vh;
-          height: 100dvh; /* Dynamic viewport height for newer browsers */
-          position: fixed;
-          top: 0;
-          left: 0;
-          z-index: 1;
+          /* Set container to fill the entire screen */
+          width: 100% !important;
+          height: 100% !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
         }
         
         #unity-canvas {
-          width: 100vw !important;
-          height: 100vh !important;
-          height: 100dvh !important;
+          margin-top: -20px !important;
+          transform: scale(0.95) !important;
+          transform-origin: top center !important;
+        }
+        
+        /* For extremely small screens */
+        @media screen and (max-width: 350px) {
+          #unity-canvas {
+            transform: scale(0.9) !important;
+            margin-top: -25px !important;
+          }
         }
       }
 
@@ -309,7 +318,7 @@
         };
       }
 
-      // Enhanced viewport setup for mobile devices
+      // Enhanced viewport setup for maximum cross-device compatibility
       function setupMobileViewport() {
         if (!isMobile) return;
         
@@ -319,30 +328,51 @@
           existingViewport.remove();
         }
         
-        // Add optimized viewport meta tag
+        // Add optimized viewport meta tag with fixed width to mimic desktop view
         const viewport = document.createElement('meta');
         viewport.name = 'viewport';
         viewport.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover';
         document.head.appendChild(viewport);
         
-        // Prevent iOS Safari bottom bar from affecting layout
+        // Handle iOS better
         if (isIOS) {
+          // Fix for iOS notches and home indicators
           document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+          document.documentElement.style.setProperty('--safe-area-inset-top', 'env(safe-area-inset-top, 0px)');
+          document.documentElement.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)');
           
           window.addEventListener('resize', () => {
             document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
           });
+          
+          // Fix for iOS Safari toolbars
+          setTimeout(() => { window.scrollTo(0, 1); }, 300);
         }
         
-        // Set body styles for mobile
+        // Set optimal body and container styles for all devices
         document.body.style.position = 'fixed';
         document.body.style.width = '100%';
         document.body.style.height = '100%';
         document.body.style.overflow = 'hidden';
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
         
-        // Add mobile-specific class
-        document.querySelector("#unity-container").className = "unity-mobile";
-        document.querySelector("#unity-canvas").className = "unity-mobile";
+        // Add mobile-specific class and ensure proper dimensions
+        const container = document.querySelector("#unity-container");
+        const canvas = document.querySelector("#unity-canvas");
+        
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+        
+        // Set fixed dimensions that work across all devices
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+        
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
       }
 
       // Firebase Configuration
