@@ -297,7 +297,7 @@
       // Set this to false if you want to decouple this synchronization from
       // happening inside the engine, and you would instead like to size up
       // the canvas DOM size and WebGL render target sizes yourself.
-      config.matchWebGLToCanvasSize = false; // Set to false to allow proper UI scaling
+      config.matchWebGLToCanvasSize = true; // Set to true for fullscreen
 
       // If you would like all file writes inside Unity Application.persistentDataPath
       // directory to automatically persist so that the contents are remembered when
@@ -318,52 +318,37 @@
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
         
-        // Apply proper canvas styling for mobile devices with fixed aspect ratio
-        var aspectRatio = 16/9; // Standard landscape aspect ratio
+        // Fill the entire screen on mobile devices
         var containerWidth = window.innerWidth;
         var containerHeight = window.innerHeight;
         
-        // Calculate dimensions that maintain aspect ratio and fit screen
-        var newWidth, newHeight;
-        if (containerWidth / containerHeight > aspectRatio) {
-          // Screen is wider than needed
-          newHeight = containerHeight;
-          newWidth = newHeight * aspectRatio;
-        } else {
-          // Screen is taller than needed
-          newWidth = containerWidth;
-          newHeight = newWidth / aspectRatio;
-        }
+        // Set canvas to fill entire screen
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
         
-        // Apply calculated dimensions
-        canvas.style.width = newWidth + 'px';
-        canvas.style.height = newHeight + 'px';
+        // Make container fill the screen
+        document.querySelector("#unity-container").style.width = '100vw';
+        document.querySelector("#unity-container").style.height = '100vh';
+        document.querySelector("#unity-container").style.margin = '0';
+        document.querySelector("#unity-container").style.position = 'fixed';
+        document.querySelector("#unity-container").style.top = '0';
+        document.querySelector("#unity-container").style.left = '0';
         
-        // Center the canvas
-        document.querySelector("#unity-container").style.width = newWidth + 'px';
-        document.querySelector("#unity-container").style.height = newHeight + 'px';
-        document.querySelector("#unity-container").style.margin = '0 auto';
+        // Set Unity canvas element style to fill the screen
+        canvas.style.position = 'absolute';
+        canvas.style.left = '0';
+        canvas.style.top = '0';
         
         // Set background color to avoid white screen
         document.body.style.backgroundColor = '#000000';
         
-        // Add window resize handler to maintain aspect ratio
+        // Add window resize handler to maintain full screen
         window.addEventListener('resize', function() {
-          var containerWidth = window.innerWidth;
-          var containerHeight = window.innerHeight;
-          
-          if (containerWidth / containerHeight > aspectRatio) {
-            newHeight = containerHeight;
-            newWidth = newHeight * aspectRatio;
-          } else {
-            newWidth = containerWidth;
-            newHeight = newWidth / aspectRatio;
-          }
-          
-          canvas.style.width = newWidth + 'px';
-          canvas.style.height = newHeight + 'px';
-          document.querySelector("#unity-container").style.width = newWidth + 'px';
-          document.querySelector("#unity-container").style.height = newHeight + 'px';
+          // Update to fill the entire screen
+          canvas.style.width = '100vw';
+          canvas.style.height = '100vh';
+          document.querySelector("#unity-container").style.width = '100vw';
+          document.querySelector("#unity-container").style.height = '100vh';
         });
         
         // Try to lock screen orientation if supported
@@ -373,8 +358,8 @@
 
         // To lower canvas resolution on mobile devices to gain some
         // performance, uncomment the following line:
-        // Set a lower device pixel ratio for better performance while ensuring UI visibility
-      config.devicePixelRatio = window.devicePixelRatio > 1 ? 1.5 : 1;
+        // Use device pixel ratio for best quality
+      config.devicePixelRatio = 1; // Fixed ratio for consistent display
 
 
       } else {
@@ -394,6 +379,16 @@
               }).then((unityInstance) => {
                 document.querySelector("#unity-loading-bar").style.display = "none";
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  // First try browser fullscreen
+                  if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                  } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                  } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                  }
+                  
+                  // Then Unity fullscreen
                   unityInstance.SetFullscreen(1);
                 };
                 
@@ -412,7 +407,18 @@
                   lockOverlay.style.display = 'none';
                   // Auto enter fullscreen mode when game is unlocked
                   setTimeout(() => {
+                    // Force true fullscreen mode
+                    if (document.documentElement.requestFullscreen) {
+                      document.documentElement.requestFullscreen();
+                    } else if (document.documentElement.webkitRequestFullscreen) {
+                      document.documentElement.webkitRequestFullscreen();
+                    } else if (document.documentElement.msRequestFullscreen) {
+                      document.documentElement.msRequestFullscreen();
+                    }
+                    
+                    // Then set Unity fullscreen
                     unityInstance.SetFullscreen(1);
+                    
                     // Force landscape orientation on mobile if not locked
                     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                       lockScreenOrientation();
