@@ -280,12 +280,12 @@
       <div id="unlock-form">
         <h2>Game Locked</h2>
         <p>Enter your unlock code to play</p>
-        <input type="text" id="unlock-code" placeholder="Enter code" autocapitalize="characters" style="text-transform: uppercase;">
+        <input type="text" id="unlock-code" placeholder="Enter code" autocapitalize="characters">
         <button id="unlock-button">Unlock Game</button>
         <div id="unlock-message"></div>
       </div>
     </div>
-
+    
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -294,87 +294,15 @@
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <div id="unity-warning"></div>
-      <div id="unity-footer" class="loading">
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">End of the Road</div>
       </div>
     </div>
-
+    
     <script>
-      // Enhanced mobile detection and device info
-      const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isAndroid = /Android/.test(navigator.userAgent);
-      
-      // Get actual device dimensions
-      function getViewportDimensions() {
-        return {
-          width: window.innerWidth || document.documentElement.clientWidth,
-          height: window.innerHeight || document.documentElement.clientHeight,
-          screenWidth: window.screen ? window.screen.width : window.innerWidth,
-          screenHeight: window.screen ? window.screen.height : window.innerHeight
-        };
-      }
-
-      // Enhanced viewport setup for maximum cross-device compatibility
-      function setupMobileViewport() {
-        if (!isMobile) return;
-        
-        // Remove any existing viewport meta tags
-        const existingViewport = document.querySelector('meta[name="viewport"]');
-        if (existingViewport) {
-          existingViewport.remove();
-        }
-        
-        // Add optimized viewport meta tag with fixed width to mimic desktop view
-        const viewport = document.createElement('meta');
-        viewport.name = 'viewport';
-        viewport.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover';
-        document.head.appendChild(viewport);
-        
-        // Handle iOS better
-        if (isIOS) {
-          // Fix for iOS notches and home indicators
-          document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-          document.documentElement.style.setProperty('--safe-area-inset-top', 'env(safe-area-inset-top, 0px)');
-          document.documentElement.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)');
-          
-          window.addEventListener('resize', () => {
-            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-          });
-          
-          // Fix for iOS Safari toolbars
-          setTimeout(() => { window.scrollTo(0, 1); }, 300);
-        }
-        
-        // Set optimal body and container styles for all devices
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.height = '100%';
-        document.body.style.overflow = 'hidden';
-        document.body.style.margin = '0';
-        document.body.style.padding = '0';
-        
-        // Add mobile-specific class and ensure proper dimensions
-        const container = document.querySelector("#unity-container");
-        const canvas = document.querySelector("#unity-canvas");
-        
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
-        
-        // Set fixed dimensions that work across all devices
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.left = '0';
-        
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-      }
-
       // Firebase Configuration
       const firebaseConfig = {
         apiKey: "AIzaSyBPaWpxyh5VGkHBORw0GmLr4vJEpn2X78k",
@@ -390,10 +318,9 @@
       firebase.initializeApp(firebaseConfig);
       const database = firebase.database();
       
-      // Game state variables
+      // Game state
       let gameLocked = true;
       let unityInstance = null;
-      let playerLives = 3;
       
       // DOM Elements
       const lockOverlay = document.getElementById('game-lock-overlay');
@@ -407,7 +334,7 @@
         this.value = this.value.toUpperCase();
       });
       
-      // Database code checking function
+      // Function to check code in the database
       function checkCodeInDatabase(code) {
         unlockMessage.textContent = "Checking code...";
         
@@ -459,11 +386,6 @@
         lockOverlay.style.display = 'none';
         unlockMessage.textContent = "";
         
-        // Setup mobile viewport if needed
-        if (isMobile) {
-          setupMobileViewport();
-        }
-        
         // Notify Unity if loaded
         if (window.unityInstance) {
           try {
@@ -475,7 +397,7 @@
           // Auto fullscreen after short delay
           setTimeout(() => {
             try {
-              enterFullscreen();
+              window.unityInstance.SetFullscreen(1);
             } catch (e) {
               console.log("Fullscreen failed:", e);
             }
@@ -488,32 +410,6 @@
         gameLocked = true;
         lockOverlay.style.display = 'flex';
         unlockCode.value = '';
-        unlockMessage.textContent = '';
-      }
-      
-      // Enhanced fullscreen function
-      function enterFullscreen() {
-        // First try browser fullscreen
-        const element = document.documentElement;
-        const requestFullscreen = element.requestFullscreen || 
-                                element.webkitRequestFullscreen || 
-                                element.mozRequestFullScreen || 
-                                element.msRequestFullscreen;
-        
-        if (requestFullscreen) {
-          requestFullscreen.call(element).catch(err => {
-            console.log("Browser fullscreen failed:", err);
-          });
-        }
-        
-        // Then Unity fullscreen
-        if (window.unityInstance) {
-          try {
-            window.unityInstance.SetFullscreen(1);
-          } catch (e) {
-            console.log("Unity fullscreen failed:", e);
-          }
-        }
       }
       
       // Event listeners for unlock functionality
@@ -536,8 +432,12 @@
           checkCodeInDatabase(code);
         }
       });
+      
+      // Unity-related code
+      var canvas = document.querySelector("#unity-canvas");
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-      // Unity banner function
+      // Banner display function
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -557,8 +457,6 @@
         updateBannerVisibility();
       }
 
-      // Unity configuration
-      var canvas = document.querySelector("#unity-canvas");
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/EndOfTheRoad-Build-.loader.js";
       var config = {
@@ -571,54 +469,42 @@
         productName: "End of the Road",
         productVersion: "1.0",
         showBanner: unityShowBanner,
-        matchWebGLToCanvasSize: true,
-        devicePixelRatio: isMobile ? 1 : window.devicePixelRatio || 1
       };
 
-      // Initialize mobile viewport if needed
       if (isMobile) {
-        setupMobileViewport();
+        // Mobile device style: fill the whole browser client area with the game canvas
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+        
+        // Better mobile performance
+        config.devicePixelRatio = 1;
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
       }
 
-      // Enhanced resize handler for better responsiveness
-      let resizeTimeout;
-      window.addEventListener('resize', function() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          if (isMobile) {
-            setupMobileViewport();
-          }
-          
-          // Update CSS custom properties for iOS
-          if (isIOS) {
-            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-          }
-        }, 250);
-      });
-
-      // Show loading bar
       document.querySelector("#unity-loading-bar").style.display = "block";
 
-      // Load Unity
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
+        }).then((instance) => {
+          unityInstance = instance;
+          window.unityInstance = instance; // Make it globally accessible
+          
           document.querySelector("#unity-loading-bar").style.display = "none";
-          
-          // Hide the footer once game loads
-          document.querySelector("#unity-footer").classList.remove("loading");
-          
-          // Setup fullscreen button (though it's now hidden)
           document.querySelector("#unity-fullscreen-button").onclick = () => {
-            enterFullscreen();
+            unityInstance.SetFullscreen(1);
           };
           
-          // Store Unity instance globally
-          window.unityInstance = unityInstance;
-          
+          // Setup communication between Unity and JavaScript
           // Setup Unity communication
           window.lockGameFromUnity = function() {
             lockGame();
