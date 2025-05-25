@@ -6,14 +6,12 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Force the content to be smaller to show health bar -->
+    <!-- Adjust viewport for health bar visibility -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <!-- Add custom styles for viewport adjustment -->
+    <!-- Add style for health bar visibility -->
     <style>
-      @media only screen and (max-width: 768px) {
-        body {
-          padding-top: 50px; /* Add padding to push content down */
-        }
+      #unity-container {
+        padding-top: 50px !important;
       }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes"><!-- iOS full-screen mode -->
@@ -79,11 +77,10 @@
   </head>
   <body>
     <script>
-      // Function to request desktop site view on mobile
-      function requestDesktopSite() {
-        // This is just a placeholder function now that we're using viewport meta tag
-        // No need to do anything special since we've set the viewport meta tag to desktop width
-        console.log("Using desktop site view");
+      // Function to ensure health bar visibility
+      function adjustForHealthBar() {
+        console.log("Adjusting for health bar visibility");
+        // No orientation forcing, just focus on health bar visibility
       }
     </script>
     <!-- Game Lock Overlay -->
@@ -91,7 +88,7 @@
       <div id="unlock-form">
         <h2>Game Locked</h2>
         <p>Enter your unlock code to play</p>
-        <input type="text" id="unlock-code" placeholder="Enter code">
+        <input type="text" id="unlock-code" placeholder="Enter code" autocapitalize="characters" style="text-transform: uppercase;">
         <button id="unlock-button">Unlock Game</button>
         <div id="unlock-message"></div>
       </div>
@@ -141,6 +138,12 @@
       const unlockButton = document.getElementById('unlock-button');
       const unlockMessage = document.getElementById('unlock-message');
       
+      // Auto capslock feature for unlock code
+      unlockCode.addEventListener('input', function() {
+        // Convert input text to uppercase
+        this.value = this.value.toUpperCase();
+      });
+      
       // Function to check code directly in the database
       function checkCodeInDatabase(code) {
         database.ref('codes').once('value')
@@ -168,9 +171,9 @@
               lockOverlay.style.display = 'none';
               unlockMessage.textContent = "";
               
-              // Use desktop site on mobile
+              // Adjust for health bar visibility on mobile
               if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                requestDesktopSite();
+                adjustForHealthBar();
               }
               
               // If Unity is already loaded, send message to reset/start game
@@ -213,7 +216,7 @@
       
       // Event listener for unlock button
       unlockButton.addEventListener('click', () => {
-        const code = unlockCode.value.trim();
+        const code = unlockCode.value.trim().toUpperCase(); // Ensure uppercase when submitting
         if (!code) {
           unlockMessage.textContent = "Please enter a code";
           return;
@@ -224,7 +227,7 @@
       // Event listener for Enter key in the code input
       unlockCode.addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
-          const code = unlockCode.value.trim();
+          const code = unlockCode.value.trim().toUpperCase(); // Ensure uppercase when submitting
           if (!code) {
             unlockMessage.textContent = "Please enter a code";
             return;
@@ -379,9 +382,9 @@
           document.querySelector("#unity-container").style.top = '50px';
         });
         
-        // Request desktop site view on mobile
+        // Adjust for health bar visibility on mobile
         if (!gameLocked) {
-          requestDesktopSite();
+          adjustForHealthBar();
         }
 
         // To lower canvas resolution on mobile devices to gain some
@@ -448,9 +451,9 @@
                     // Then set Unity fullscreen
                     unityInstance.SetFullscreen(1);
                     
-                    // Request desktop site on mobile if not locked
+                    // Adjust for health bar visibility on mobile if not locked
                     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                      requestDesktopSite();
+                      adjustForHealthBar();
                     }
                   }, 1000); // Small delay to ensure everything is loaded
                 }
