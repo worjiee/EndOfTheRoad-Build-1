@@ -6,6 +6,12 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <!-- Add fullscreen meta tag for better mobile experience -->
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <!-- Force landscape orientation on mobile devices -->
+    <meta name="screen-orientation" content="landscape">
+    <meta name="x5-orientation" content="landscape"><!-- QQ Browser -->
+    <meta name="msapplication-orientation" content="landscape"><!-- IE/Edge -->
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -66,6 +72,16 @@
     </style>
   </head>
   <body>
+    <script>
+      // Lock screen orientation to landscape if supported
+      function lockScreenOrientation() {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(function(error) {
+            console.log('Screen orientation lock error:', error);
+          });
+        }
+      }
+    </script>
     <!-- Game Lock Overlay -->
     <div id="game-lock-overlay">
       <div id="unlock-form">
@@ -148,9 +164,18 @@
               lockOverlay.style.display = 'none';
               unlockMessage.textContent = "";
               
+              // Force landscape orientation on mobile
+              if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                lockScreenOrientation();
+              }
+              
               // If Unity is already loaded, send message to reset/start game
               if (window.unityInstance) {
                 window.unityInstance.SendMessage('GameManager', 'UnlockGame');
+                // Auto enter fullscreen mode when game is unlocked
+                setTimeout(() => {
+                  window.unityInstance.SetFullscreen(1);
+                }, 1000); // Small delay to ensure everything is loaded
               }
             } else {
               unlockMessage.textContent = "Invalid unlock code";
@@ -243,6 +268,8 @@
         productName: "End of the Road",
         productVersion: "1.0",
         showBanner: unityShowBanner,
+        // Add fullscreen preference to the config
+        fullscreenMode: true
       };
 
       // By default, Unity keeps WebGL canvas render target size matched with
@@ -270,6 +297,21 @@
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
+        
+        // Apply CSS to ensure landscape orientation
+        document.body.style.transform = 'rotate(90deg)';
+        document.body.style.transformOrigin = 'left top';
+        document.body.style.width = '100vh';
+        document.body.style.height = '100vw';
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'absolute';
+        document.body.style.top = '100%';
+        document.body.style.left = '0';
+        
+        // Try to lock screen orientation if supported
+        if (!gameLocked) {
+          lockScreenOrientation();
+        }
 
         // To lower canvas resolution on mobile devices to gain some
         // performance, uncomment the following line:
@@ -308,6 +350,14 @@
                   lockOverlay.style.display = 'flex';
                 } else {
                   lockOverlay.style.display = 'none';
+                  // Auto enter fullscreen mode when game is unlocked
+                  setTimeout(() => {
+                    unityInstance.SetFullscreen(1);
+                    // Force landscape orientation on mobile if not locked
+                    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                      lockScreenOrientation();
+                    }
+                  }, 1000); // Small delay to ensure everything is loaded
                 }
 
               }).catch((message) => {
