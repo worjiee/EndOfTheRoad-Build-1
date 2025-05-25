@@ -6,49 +6,106 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Responsive viewport settings for consistent display across devices -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <!-- Enhanced responsive styles for consistent game display -->
-    <style>
-      #unity-container {
-        padding-top: 50px !important;
-      }
-      
-      /* Responsive scaling for different device sizes */
-      @media screen and (max-width: 360px) {
-        #unity-container { transform: scale(0.9); transform-origin: top center; }
-      }
-      
-      @media screen and (min-width: 361px) and (max-width: 480px) {
-        #unity-container { transform: scale(0.95); transform-origin: top center; }
-      }
-      
-      /* Ensure content is centered */
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        min-height: 100vh;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-      }
-    </style>
-    <meta name="apple-mobile-web-app-capable" content="yes"><!-- iOS full-screen mode -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- iOS status bar -->
+    <!-- Enhanced viewport for better mobile compatibility -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <style>
+      /* Reset and base styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #000;
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+      
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+      }
+
+      /* Unity container styles */
+      #unity-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+      }
+      
+      #unity-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+        background-color: #000;
+      }
+
+      /* Mobile-specific adjustments */
+      @media screen and (max-width: 768px) {
+        #unity-container {
+          /* Ensure full viewport coverage on mobile */
+          width: 100vw;
+          height: 100vh;
+          height: 100dvh; /* Dynamic viewport height for newer browsers */
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 1;
+        }
+        
+        #unity-canvas {
+          width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+        }
+      }
+
+      /* Desktop styles */
+      @media screen and (min-width: 769px) {
+        #unity-container {
+          width: 960px;
+          height: 600px;
+          max-width: 95vw;
+          max-height: 95vh;
+          margin: auto;
+        }
+        
+        #unity-canvas {
+          width: 100% !important;
+          height: 100% !important;
+        }
+      }
+
+      /* Game lock overlay styles */
       #game-lock-overlay {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        background-color: rgba(0, 0, 0, 0.95);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -56,6 +113,7 @@
         z-index: 1000;
         color: white;
       }
+      
       #unlock-form {
         display: flex;
         flex-direction: column;
@@ -65,19 +123,24 @@
         padding: 30px;
         border-radius: 10px;
         box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        max-width: 90vw;
+        width: 300px;
       }
+      
       #unlock-code {
-        padding: 10px;
+        padding: 12px;
         font-size: 18px;
-        width: 200px;
+        width: 100%;
+        max-width: 200px;
         text-align: center;
         border: 2px solid #444;
         background-color: #333;
         color: #fff;
         border-radius: 5px;
       }
+      
       #unlock-button {
-        padding: 10px 20px;
+        padding: 12px 24px;
         font-size: 18px;
         background-color: #4CAF50;
         color: white;
@@ -85,25 +148,117 @@
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s;
+        min-width: 120px;
       }
+      
       #unlock-button:hover {
         background-color: #45a049;
       }
+      
       #unlock-message {
         color: red;
         font-size: 16px;
-        height: 20px;
+        text-align: center;
+        min-height: 20px;
+      }
+
+      /* Loading bar styles */
+      #unity-loading-bar {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+      }
+      
+      #unity-logo {
+        width: 154px;
+        height: 130px;
+        background: url('TemplateData/unity-logo-dark.png') no-repeat center / contain;
+        margin: 0 auto 20px;
+      }
+      
+      #unity-progress-bar-empty {
+        width: 141px;
+        height: 18px;
+        margin: 0 auto;
+        background: url('TemplateData/progress-bar-empty-dark.png') no-repeat center / contain;
+      }
+      
+      #unity-progress-bar-full {
+        width: 0%;
+        height: 18px;
+        background: url('TemplateData/progress-bar-full-dark.png') no-repeat center / contain;
+      }
+
+      /* Footer styles */
+      #unity-footer {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 10;
+      }
+      
+      #unity-logo-title-footer {
+        width: 80px;
+        height: 80px;
+        background: url('TemplateData/unity-logo-light.png') no-repeat center / contain;
+      }
+      
+      #unity-fullscreen-button {
+        width: 38px;
+        height: 38px;
+        background: url('TemplateData/fullscreen-button.png') no-repeat center / contain;
+        cursor: pointer;
+      }
+      
+      #unity-build-title {
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      /* Warning banner */
+      #unity-warning {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: none;
+      }
+
+      /* Hide scrollbars and prevent overflow */
+      html {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      
+      html::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Prevent zoom on double tap */
+      * {
+        touch-action: manipulation;
+      }
+      
+      /* Safe area handling for notched devices */
+      @supports (padding: max(0px)) {
+        body {
+          padding-left: max(0px, env(safe-area-inset-left));
+          padding-right: max(0px, env(safe-area-inset-right));
+          padding-top: max(0px, env(safe-area-inset-top));
+          padding-bottom: max(0px, env(safe-area-inset-bottom));
+        }
       }
     </style>
   </head>
   <body>
-    <script>
-      // Function to ensure health bar visibility
-      function adjustForHealthBar() {
-        console.log("Adjusting for health bar visibility");
-        // No orientation forcing, just focus on health bar visibility
-      }
-    </script>
     <!-- Game Lock Overlay -->
     <div id="game-lock-overlay">
       <div id="unlock-form">
@@ -123,34 +278,85 @@
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <div id="unity-warning"> </div>
+      <div id="unity-warning"></div>
       <div id="unity-footer">
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">End of the Road</div>
       </div>
     </div>
+
     <script>
+      // Enhanced mobile detection and device info
+      const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      
+      // Get actual device dimensions
+      function getViewportDimensions() {
+        return {
+          width: window.innerWidth || document.documentElement.clientWidth,
+          height: window.innerHeight || document.documentElement.clientHeight,
+          screenWidth: window.screen ? window.screen.width : window.innerWidth,
+          screenHeight: window.screen ? window.screen.height : window.innerHeight
+        };
+      }
+
+      // Enhanced viewport setup for mobile devices
+      function setupMobileViewport() {
+        if (!isMobile) return;
+        
+        // Remove any existing viewport meta tags
+        const existingViewport = document.querySelector('meta[name="viewport"]');
+        if (existingViewport) {
+          existingViewport.remove();
+        }
+        
+        // Add optimized viewport meta tag
+        const viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        viewport.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover';
+        document.head.appendChild(viewport);
+        
+        // Prevent iOS Safari bottom bar from affecting layout
+        if (isIOS) {
+          document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+          
+          window.addEventListener('resize', () => {
+            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+          });
+        }
+        
+        // Set body styles for mobile
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+        document.body.style.overflow = 'hidden';
+        
+        // Add mobile-specific class
+        document.querySelector("#unity-container").className = "unity-mobile";
+        document.querySelector("#unity-canvas").className = "unity-mobile";
+      }
+
       // Firebase Configuration
       const firebaseConfig = {
-        // You need to replace these values with your actual Firebase project config
-        apiKey: "AIzaSyBPaWpxyh5VGkHBORw0GmLr4vJEpn2X78k", // Replace this with your new API key
-  authDomain: "websitepay-2681c.firebaseapp.com",
-  databaseURL: "https://websitepay-2681c-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "websitepay-2681c",
-  storageBucket: "websitepay-2681c.appspot.com",
-  messagingSenderId: "728732104278",
-  appId: "1:728732104278:web:5b2bfcb7bc8a50f7baf5d9"
+        apiKey: "AIzaSyBPaWpxyh5VGkHBORw0GmLr4vJEpn2X78k",
+        authDomain: "websitepay-2681c.firebaseapp.com",
+        databaseURL: "https://websitepay-2681c-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "websitepay-2681c",
+        storageBucket: "websitepay-2681c.appspot.com",
+        messagingSenderId: "728732104278",
+        appId: "1:728732104278:web:5b2bfcb7bc8a50f7baf5d9"
       };
 
       // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
       const database = firebase.database();
       
-      // Game lock state
+      // Game state variables
       let gameLocked = true;
       let unityInstance = null;
-      let playerLives = 3; // Default lives, adjust as needed
+      let playerLives = 3;
       
       // DOM Elements
       const lockOverlay = document.getElementById('game-lock-overlay');
@@ -159,14 +365,15 @@
       const unlockButton = document.getElementById('unlock-button');
       const unlockMessage = document.getElementById('unlock-message');
       
-      // Auto capslock feature for unlock code
+      // Auto uppercase for unlock code
       unlockCode.addEventListener('input', function() {
-        // Convert input text to uppercase
         this.value = this.value.toUpperCase();
       });
       
-      // Function to check code directly in the database
+      // Database code checking function
       function checkCodeInDatabase(code) {
+        unlockMessage.textContent = "Checking code...";
+        
         database.ref('codes').once('value')
           .then((snapshot) => {
             let codeFound = false;
@@ -179,32 +386,13 @@
                 codeFound = true;
                 codeKey = childSnapshot.key;
                 console.log("Found valid code:", code, "with key:", codeKey);
-                return true; // Break the forEach loop
+                return true;
               }
             });
             
             if (codeFound && codeKey) {
-              // Mark the code as used
               markCodeAsUsed(code, codeKey);
-              
-              // Unlock the game
-              gameLocked = false;
-              lockOverlay.style.display = 'none';
-              unlockMessage.textContent = "";
-              
-              // Adjust for health bar visibility on mobile
-              if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                adjustForHealthBar();
-              }
-              
-              // If Unity is already loaded, send message to reset/start game
-              if (window.unityInstance) {
-                window.unityInstance.SendMessage('GameManager', 'UnlockGame');
-                // Auto enter fullscreen mode when game is unlocked
-                setTimeout(() => {
-                  window.unityInstance.SetFullscreen(1);
-                }, 1000); // Small delay to ensure everything is loaded
-              }
+              unlockGame();
             } else {
               unlockMessage.textContent = "Invalid unlock code";
               console.log("Invalid code:", code);
@@ -212,11 +400,11 @@
           })
           .catch((error) => {
             console.error("Error checking unlock code:", error);
-            unlockMessage.textContent = "Error checking code";
+            unlockMessage.textContent = "Error checking code. Please try again.";
           });
       }
       
-      // Function to mark a code as used in the database
+      // Mark code as used in database
       function markCodeAsUsed(code, codeKey) {
         database.ref('codes/' + codeKey).update({
           used: true,
@@ -228,16 +416,72 @@
         });
       }
       
-      // Lock game function (called when lives are lost)
+      // Unlock game function
+      function unlockGame() {
+        gameLocked = false;
+        lockOverlay.style.display = 'none';
+        unlockMessage.textContent = "";
+        
+        // Setup mobile viewport if needed
+        if (isMobile) {
+          setupMobileViewport();
+        }
+        
+        // Notify Unity if loaded
+        if (window.unityInstance) {
+          try {
+            window.unityInstance.SendMessage('GameManager', 'UnlockGame');
+          } catch (e) {
+            console.log("Unity message sending failed:", e);
+          }
+          
+          // Auto fullscreen after short delay
+          setTimeout(() => {
+            try {
+              enterFullscreen();
+            } catch (e) {
+              console.log("Fullscreen failed:", e);
+            }
+          }, 1000);
+        }
+      }
+      
+      // Lock game function
       function lockGame() {
         gameLocked = true;
         lockOverlay.style.display = 'flex';
         unlockCode.value = '';
+        unlockMessage.textContent = '';
       }
       
-      // Event listener for unlock button
+      // Enhanced fullscreen function
+      function enterFullscreen() {
+        // First try browser fullscreen
+        const element = document.documentElement;
+        const requestFullscreen = element.requestFullscreen || 
+                                element.webkitRequestFullscreen || 
+                                element.mozRequestFullScreen || 
+                                element.msRequestFullscreen;
+        
+        if (requestFullscreen) {
+          requestFullscreen.call(element).catch(err => {
+            console.log("Browser fullscreen failed:", err);
+          });
+        }
+        
+        // Then Unity fullscreen
+        if (window.unityInstance) {
+          try {
+            window.unityInstance.SetFullscreen(1);
+          } catch (e) {
+            console.log("Unity fullscreen failed:", e);
+          }
+        }
+      }
+      
+      // Event listeners for unlock functionality
       unlockButton.addEventListener('click', () => {
-        const code = unlockCode.value.trim().toUpperCase(); // Ensure uppercase when submitting
+        const code = unlockCode.value.trim().toUpperCase();
         if (!code) {
           unlockMessage.textContent = "Please enter a code";
           return;
@@ -245,10 +489,9 @@
         checkCodeInDatabase(code);
       });
       
-      // Event listener for Enter key in the code input
       unlockCode.addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
-          const code = unlockCode.value.trim().toUpperCase(); // Ensure uppercase when submitting
+          const code = unlockCode.value.trim().toUpperCase();
           if (!code) {
             unlockMessage.textContent = "Please enter a code";
             return;
@@ -257,14 +500,7 @@
         }
       });
 
-      var canvas = document.querySelector("#unity-canvas");
-
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
+      // Unity banner function
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -284,6 +520,8 @@
         updateBannerVisibility();
       }
 
+      // Unity configuration
+      var canvas = document.querySelector("#unity-canvas");
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/EndOfTheRoad-Build-.loader.js";
       var config = {
@@ -296,248 +534,102 @@
         productName: "End of the Road",
         productVersion: "1.0",
         showBanner: unityShowBanner,
-        // Add fullscreen preference to the config
-        fullscreenMode: true
+        matchWebGLToCanvasSize: true,
+        devicePixelRatio: isMobile ? 1 : window.devicePixelRatio || 1
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      config.matchWebGLToCanvasSize = true; // Set to true but we'll adjust the canvas size
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-        
-        // Set up for mobile with adjusted view to show health bar
-        var containerWidth = window.innerWidth;
-        var containerHeight = window.innerHeight;
-        
-        // Enhanced mobile implementation with better cross-device compatibility
-        var screenWidth = window.innerWidth;
-        var screenHeight = window.innerHeight;
-        var containerWidth, containerHeight, scaleFactor;
-        
-        // Use aspect ratio to calculate proper dimensions
-        var gameAspectRatio = 16/9; // Standard game aspect ratio
-        var deviceAspectRatio = screenWidth / screenHeight;
-        
-        // Calculate the best container size based on device aspect ratio
-        if (deviceAspectRatio > gameAspectRatio) {
-          // Width is the limiting factor
-          containerHeight = screenHeight - 50; // Reserve space for health bar
-          containerWidth = containerHeight * gameAspectRatio;
-        } else {
-          // Height is the limiting factor
-          containerWidth = screenWidth;
-          containerHeight = (containerWidth / gameAspectRatio) - 50; // Reserve space for health bar
-        }
-        
-        // Set container size and positioning
-        var container = document.querySelector("#unity-container");
-        container.style.width = containerWidth + 'px';
-        container.style.height = containerHeight + 'px';
-        container.style.position = 'absolute';
-        container.style.top = '50px'; // Space for health bar
-        container.style.left = '50%'; // Center horizontally
-        container.style.transform = 'translateX(-50%)'; // Center alignment
-        container.style.margin = '0';
-        container.style.overflow = 'hidden'; // Hide overflow
-        
-        // Determine if we need additional scaling for very small screens
-        if (screenWidth < 400) {
-          scaleFactor = screenWidth / 400;
-          container.style.transform = 'translateX(-50%) scale(' + scaleFactor + ')';
-          container.style.transformOrigin = 'top center';
-        }
-        
-        // Set the canvas to fill the container
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        
-        // Create a viewport overlay for health bar visibility
-        var healthBarSpace = document.createElement('div');
-        healthBarSpace.id = 'health-bar-space';
-        healthBarSpace.style.position = 'fixed';
-        healthBarSpace.style.top = '0';
-        healthBarSpace.style.left = '0';
-        healthBarSpace.style.width = '100%';
-        healthBarSpace.style.height = '50px';
-        healthBarSpace.style.backgroundColor = 'rgba(0,0,0,0)';
-        healthBarSpace.style.zIndex = '1';
-        document.body.insertBefore(healthBarSpace, container);
-        
-        // Move the canvas up to show the health bar
-        canvas.style.position = 'absolute';
-        canvas.style.top = '-50px'; // Move up to reveal health bar
-        canvas.style.left = '0';
-        
-        // Add a special warning for users
-        var viewportNotice = document.createElement('div');
-        viewportNotice.id = 'viewport-notice';
-        viewportNotice.style.position = 'fixed';
-        viewportNotice.style.bottom = '10px';
-        viewportNotice.style.left = '10px';
-        viewportNotice.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        viewportNotice.style.color = '#fff';
-        viewportNotice.style.padding = '5px 10px';
-        viewportNotice.style.borderRadius = '5px';
-        viewportNotice.style.fontSize = '12px';
-        viewportNotice.style.zIndex = '1000';
-        viewportNotice.innerHTML = 'Game viewport adjusted to show health bar';
-        viewportNotice.style.opacity = '1';
-        document.body.appendChild(viewportNotice);
-        
-        // Fade out the notice after 5 seconds
-        setTimeout(function() {
-          viewportNotice.style.transition = 'opacity 1s';
-          viewportNotice.style.opacity = '0';
-        }, 5000);
-        
-        // Set background color to avoid white screen
-        document.body.style.backgroundColor = '#000000';
-        
-        // Enhanced window resize handler for better responsiveness
-        window.addEventListener('resize', function() {
-          var screenWidth = window.innerWidth;
-          var screenHeight = window.innerHeight;
-          var containerWidth, containerHeight, scaleFactor;
-          var container = document.querySelector("#unity-container");
-          
-          // Recalculate dimensions using aspect ratio
-          var gameAspectRatio = 16/9;
-          var deviceAspectRatio = screenWidth / screenHeight;
-          
-          if (deviceAspectRatio > gameAspectRatio) {
-            containerHeight = screenHeight - 50;
-            containerWidth = containerHeight * gameAspectRatio;
-          } else {
-            containerWidth = screenWidth;
-            containerHeight = (containerWidth / gameAspectRatio) - 50;
-          }
-          
-          // Update container dimensions and positioning
-          container.style.width = containerWidth + 'px';
-          container.style.height = containerHeight + 'px';
-          container.style.top = '50px';
-          
-          // Apply scaling for small screens
-          if (screenWidth < 400) {
-            scaleFactor = screenWidth / 400;
-            container.style.transform = 'translateX(-50%) scale(' + scaleFactor + ')';
-          } else {
-            container.style.transform = 'translateX(-50%)';
-          }
-        });
-        
-        // Adjust for health bar visibility on mobile
-        if (!gameLocked) {
-          adjustForHealthBar();
-        }
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // Use device pixel ratio for best quality
-      config.devicePixelRatio = 1; // Fixed ratio for consistent display
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-        var container = document.querySelector("#unity-container");
-        container.style.margin = '0 auto';
-        container.style.position = 'relative';
-        container.style.maxWidth = '100%'; // Ensure it doesn't overflow on smaller screens
-        
-        // Add responsive behavior for smaller desktop screens
-        if (window.innerWidth < 960) {
-          var scale = window.innerWidth / 960;
-          canvas.style.width = (window.innerWidth) + 'px';
-          canvas.style.height = (600 * scale) + 'px';
-        }
+      // Initialize mobile viewport if needed
+      if (isMobile) {
+        setupMobileViewport();
       }
 
+      // Enhanced resize handler for better responsiveness
+      let resizeTimeout;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (isMobile) {
+            setupMobileViewport();
+          }
+          
+          // Update CSS custom properties for iOS
+          if (isIOS) {
+            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+          }
+        }, 250);
+      });
+
+      // Show loading bar
       document.querySelector("#unity-loading-bar").style.display = "block";
 
+      // Load Unity
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  // First try browser fullscreen
-                  if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen();
-                  } else if (document.documentElement.webkitRequestFullscreen) {
-                    document.documentElement.webkitRequestFullscreen();
-                  } else if (document.documentElement.msRequestFullscreen) {
-                    document.documentElement.msRequestFullscreen();
-                  }
-                  
-                  // Then Unity fullscreen
-                  unityInstance.SetFullscreen(1);
-                };
-                
-                // Store Unity instance for communication
-                window.unityInstance = unityInstance;
-                
-                // Setup communication between Unity and JavaScript
-                window.lockGameFromUnity = function() {
-                  lockGame();
-                };
-                
-                // If game is locked at start, make sure overlay is visible
-                if (gameLocked) {
-                  lockOverlay.style.display = 'flex';
-                } else {
-                  lockOverlay.style.display = 'none';
-                  // Auto enter fullscreen mode when game is unlocked
-                  setTimeout(() => {
-                    // Force true fullscreen mode
-                    if (document.documentElement.requestFullscreen) {
-                      document.documentElement.requestFullscreen();
-                    } else if (document.documentElement.webkitRequestFullscreen) {
-                      document.documentElement.webkitRequestFullscreen();
-                    } else if (document.documentElement.msRequestFullscreen) {
-                      document.documentElement.msRequestFullscreen();
-                    }
-                    
-                    // Then set Unity fullscreen
-                    unityInstance.SetFullscreen(1);
-                    
-                    // Adjust for health bar visibility on mobile if not locked
-                    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                      adjustForHealthBar();
-                    }
-                  }, 1000); // Small delay to ensure everything is loaded
-                }
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          
+          // Setup fullscreen button
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            enterFullscreen();
+          };
+          
+          // Store Unity instance globally
+          window.unityInstance = unityInstance;
+          
+          // Setup Unity communication
+          window.lockGameFromUnity = function() {
+            lockGame();
+          };
+          
+          // Handle initial game state
+          if (gameLocked) {
+            lockOverlay.style.display = 'flex';
+          } else {
+            lockOverlay.style.display = 'none';
+            setTimeout(() => {
+              enterFullscreen();
+            }, 1000);
+          }
 
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+        }).catch((message) => {
+          console.error("Unity loading failed:", message);
+          alert("Failed to load game: " + message);
+        });
+      };
+
+      script.onerror = () => {
+        console.error("Failed to load Unity loader script");
+        alert("Failed to load game scripts. Please check your internet connection.");
+      };
 
       document.body.appendChild(script);
+
+      // Prevent context menu on mobile
+      if (isMobile) {
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Prevent pull-to-refresh on mobile
+        document.body.addEventListener('touchstart', e => {
+          if (e.touches.length > 1) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchend', e => {
+          if (e.touches.length > 0) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchmove', e => {
+          if (e.scale !== 1) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+      }
 
     </script>
   </body>
