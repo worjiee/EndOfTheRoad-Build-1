@@ -61,24 +61,23 @@
         background-color: #000;
       }
 
-      /* Mobile-specific adjustments with health bar visibility fix */
+      /* Mobile-specific adjustments */
       @media screen and (max-width: 768px) {
         #unity-container {
           /* Ensure full viewport coverage on mobile */
           width: 100vw;
-          height: calc(100vh - 40px); /* Reduce height to make room for health bar */
-          height: calc(100dvh - 40px); /* Dynamic viewport height for newer browsers */
+          height: 100vh;
+          height: 100dvh; /* Dynamic viewport height for newer browsers */
           position: fixed;
-          top: 40px; /* Add space at top for health bar */
+          top: 0;
           left: 0;
           z-index: 1;
         }
         
         #unity-canvas {
           width: 100vw !important;
-          height: calc(100vh - 40px) !important;
-          height: calc(100dvh - 40px) !important;
-          transform: translateY(-40px); /* Shift canvas up to reveal health bar */
+          height: 100vh !important;
+          height: 100dvh !important;
         }
       }
 
@@ -300,9 +299,6 @@
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const isAndroid = /Android/.test(navigator.userAgent);
       
-      // Define a consistent health bar height for calculations
-      const HEALTH_BAR_HEIGHT = 40;
-      
       // Get actual device dimensions
       function getViewportDimensions() {
         return {
@@ -436,23 +432,6 @@
         // Setup mobile viewport if needed
         if (isMobile) {
           setupMobileViewport();
-          
-          // Add specific CSS for health bar visibility
-          const healthBarStyle = document.createElement('style');
-          healthBarStyle.textContent = `
-            body::before {
-              content: '';
-              display: block;
-              height: ${HEALTH_BAR_HEIGHT}px;
-              width: 100%;
-              background: transparent;
-            }
-            
-            #unity-canvas {
-              margin-top: -${HEALTH_BAR_HEIGHT}px !important;
-            }
-          `;
-          document.head.appendChild(healthBarStyle);
         }
         
         // Notify Unity if loaded
