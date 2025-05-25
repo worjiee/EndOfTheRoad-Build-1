@@ -6,13 +6,30 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Force the content to be smaller to show health bar -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <!-- Add custom styles for viewport adjustment -->
+    <!-- Force landscape orientation and adjust for health bar visibility -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="screen-orientation" content="landscape">
+    <meta name="x5-orientation" content="landscape"><!-- QQ Browser -->
+    <meta name="msapplication-orientation" content="landscape"><!-- IE/Edge -->
+    <!-- Add custom styles for landscape orientation and health bar visibility -->
     <style>
-      @media only screen and (max-width: 768px) {
+      @media screen and (orientation: portrait) {
+        html, body {
+          width: 100vh;
+          height: 100vw;
+          overflow: hidden;
+          position: fixed;
+        }
         body {
-          padding-top: 50px; /* Add padding to push content down */
+          transform: rotate(90deg);
+          transform-origin: left top;
+          position: absolute;
+          top: 100%;
+          left: 0;
+        }
+        /* Add padding for health bar visibility */
+        #unity-container {
+          padding-top: 50px;
         }
       }
     </style>
@@ -79,11 +96,58 @@
   </head>
   <body>
     <script>
-      // Function to request desktop site view on mobile
-      function requestDesktopSite() {
-        // This is just a placeholder function now that we're using viewport meta tag
-        // No need to do anything special since we've set the viewport meta tag to desktop width
-        console.log("Using desktop site view");
+      // Function to force landscape orientation
+      function forceLandscape() {
+        try {
+          // Try the Screen Orientation API
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(function(error) {
+              console.log('Screen orientation lock error:', error);
+            });
+          }
+          
+          // Check if we need to show the rotate device message
+          checkOrientation();
+          
+          // Add orientation change listener
+          window.addEventListener('orientationchange', checkOrientation);
+        } catch (e) {
+          console.error('Error in orientation handling:', e);
+        }
+      }
+      
+      // Function to check device orientation and show/hide rotate message
+      function checkOrientation() {
+        // Create rotate message if it doesn't exist
+        if (!document.getElementById('rotate-message')) {
+          var rotateMsg = document.createElement('div');
+          rotateMsg.id = 'rotate-message';
+          rotateMsg.style.position = 'fixed';
+          rotateMsg.style.top = '0';
+          rotateMsg.style.left = '0';
+          rotateMsg.style.width = '100%';
+          rotateMsg.style.height = '100%';
+          rotateMsg.style.backgroundColor = 'rgba(0,0,0,0.8)';
+          rotateMsg.style.color = 'white';
+          rotateMsg.style.display = 'flex';
+          rotateMsg.style.alignItems = 'center';
+          rotateMsg.style.justifyContent = 'center';
+          rotateMsg.style.zIndex = '2000';
+          rotateMsg.style.flexDirection = 'column';
+          rotateMsg.innerHTML = '<div style="font-size: 24px; margin-bottom: 20px;">Please rotate your device</div>' +
+                                '<div style="transform: rotate(90deg); font-size: 48px;">↻</div>';
+          document.body.appendChild(rotateMsg);
+        }
+        
+        // Show/hide based on orientation
+        var rotateMsg = document.getElementById('rotate-message');
+        if (window.orientation === 0 || window.orientation === 180) {
+          // Portrait mode
+          rotateMsg.style.display = 'flex';
+        } else {
+          // Landscape mode
+          rotateMsg.style.display = 'none';
+        }
       }
     </script>
     <!-- Game Lock Overlay -->
@@ -168,9 +232,9 @@
               lockOverlay.style.display = 'none';
               unlockMessage.textContent = "";
               
-              // Use desktop site on mobile
+              // Force landscape orientation on mobile
               if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                requestDesktopSite();
+                forceLandscape();
               }
               
               // If Unity is already loaded, send message to reset/start game
@@ -379,9 +443,9 @@
           document.querySelector("#unity-container").style.top = '50px';
         });
         
-        // Request desktop site view on mobile
+        // Force landscape orientation on mobile
         if (!gameLocked) {
-          requestDesktopSite();
+          forceLandscape();
         }
 
         // To lower canvas resolution on mobile devices to gain some
@@ -448,9 +512,9 @@
                     // Then set Unity fullscreen
                     unityInstance.SetFullscreen(1);
                     
-                    // Request desktop site on mobile if not locked
+                    // Force landscape orientation on mobile if not locked
                     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                      requestDesktopSite();
+                      forceLandscape();
                     }
                   }, 1000); // Small delay to ensure everything is loaded
                 }
