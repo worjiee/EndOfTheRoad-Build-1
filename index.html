@@ -6,8 +6,16 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Force desktop site view on mobile devices with adjusted scaling for health bar visibility -->
-    <meta name="viewport" content="width=1280, height=1024, initial-scale=0.8, maximum-scale=1.0, user-scalable=yes">
+    <!-- Force the content to be smaller to show health bar -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <!-- Add custom styles for viewport adjustment -->
+    <style>
+      @media only screen and (max-width: 768px) {
+        body {
+          padding-top: 50px; /* Add padding to push content down */
+        }
+      }
+    </style>
     <meta name="apple-mobile-web-app-capable" content="yes"><!-- iOS full-screen mode -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- iOS status bar -->
     <!-- Firebase SDK -->
@@ -298,41 +306,77 @@
         var containerWidth = window.innerWidth;
         var containerHeight = window.innerHeight;
         
-        // Apply scaled dimensions to ensure all UI elements are visible, especially the health bar
-        canvas.style.width = '100vw';
-        canvas.style.height = '92vh'; // Even smaller height to ensure top elements are visible
+        // Mobile-specific implementation that shifts viewport to show health bar
+        // First, set the Unity container to fill the screen but with a fixed height ratio
+        var screenWidth = window.innerWidth;
+        var screenHeight = window.innerHeight;
         
-        // Make container fill the screen with adjusted position
-        document.querySelector("#unity-container").style.width = '100vw';
-        document.querySelector("#unity-container").style.height = '92vh';
-        document.querySelector("#unity-container").style.margin = '0';
-        document.querySelector("#unity-container").style.position = 'fixed';
-        document.querySelector("#unity-container").style.top = '4vh'; // Add a larger margin at the top for the health bar
+        // Set the container to fill width and have a specific height
+        document.querySelector("#unity-container").style.width = screenWidth + 'px';
+        document.querySelector("#unity-container").style.height = (screenHeight - 50) + 'px'; // Reduce height to show health bar
+        document.querySelector("#unity-container").style.position = 'absolute';
+        document.querySelector("#unity-container").style.top = '50px'; // Add top margin for health bar
         document.querySelector("#unity-container").style.left = '0';
+        document.querySelector("#unity-container").style.margin = '0';
         
-        // Set Unity canvas element style
+        // Set the canvas to fill the container
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        
+        // Create a viewport overlay for health bar visibility
+        var healthBarSpace = document.createElement('div');
+        healthBarSpace.id = 'health-bar-space';
+        healthBarSpace.style.position = 'fixed';
+        healthBarSpace.style.top = '0';
+        healthBarSpace.style.left = '0';
+        healthBarSpace.style.width = '100%';
+        healthBarSpace.style.height = '50px';
+        healthBarSpace.style.backgroundColor = 'rgba(0,0,0,0)'; // Transparent
+        healthBarSpace.style.zIndex = '1'; // Above unity container
+        document.body.insertBefore(healthBarSpace, document.querySelector("#unity-container"));
+        
+        // Create a viewport mask
+        document.querySelector("#unity-container").style.overflow = 'hidden';
+        
+        // Important: Move the canvas up to show the health bar
         canvas.style.position = 'absolute';
+        canvas.style.top = '-50px'; // Move up to reveal health bar
         canvas.style.left = '0';
-        canvas.style.top = '0';
         
-        // Add stronger zoom out effect to show more of the game area, including health bar
-        document.body.style.zoom = '0.9';
+        // Add a special warning for users
+        var viewportNotice = document.createElement('div');
+        viewportNotice.id = 'viewport-notice';
+        viewportNotice.style.position = 'fixed';
+        viewportNotice.style.bottom = '10px';
+        viewportNotice.style.left = '10px';
+        viewportNotice.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        viewportNotice.style.color = '#fff';
+        viewportNotice.style.padding = '5px 10px';
+        viewportNotice.style.borderRadius = '5px';
+        viewportNotice.style.fontSize = '12px';
+        viewportNotice.style.zIndex = '1000';
+        viewportNotice.innerHTML = 'Game viewport adjusted to show health bar';
+        viewportNotice.style.opacity = '1';
+        document.body.appendChild(viewportNotice);
         
-        // Add CSS transform for additional zoom out if needed
-        canvas.style.transform = 'scale(0.95)';
-        canvas.style.transformOrigin = 'top center';
+        // Fade out the notice after 5 seconds
+        setTimeout(function() {
+          viewportNotice.style.transition = 'opacity 1s';
+          viewportNotice.style.opacity = '0';
+        }, 5000);
         
         // Set background color to avoid white screen
         document.body.style.backgroundColor = '#000000';
         
-        // Add window resize handler to maintain adjusted screen view
+        // Add window resize handler that maintains the viewport adjustment
         window.addEventListener('resize', function() {
-          // Update with adjusted dimensions to ensure health bar visibility
-          canvas.style.width = '100vw';
-          canvas.style.height = '92vh';
-          document.querySelector("#unity-container").style.width = '100vw';
-          document.querySelector("#unity-container").style.height = '92vh';
-          document.querySelector("#unity-container").style.top = '4vh';
+          var screenWidth = window.innerWidth;
+          var screenHeight = window.innerHeight;
+          
+          // Update container dimensions
+          document.querySelector("#unity-container").style.width = screenWidth + 'px';
+          document.querySelector("#unity-container").style.height = (screenHeight - 50) + 'px';
+          document.querySelector("#unity-container").style.top = '50px';
         });
         
         // Request desktop site view on mobile
@@ -351,6 +395,7 @@
         canvas.style.width = "960px";
         canvas.style.height = "600px";
         document.querySelector("#unity-container").style.margin = '0 auto';
+        document.querySelector("#unity-container").style.position = 'relative';
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
