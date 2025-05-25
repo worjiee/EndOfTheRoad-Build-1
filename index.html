@@ -6,12 +6,33 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Adjust viewport for health bar visibility -->
+    <!-- Responsive viewport settings for consistent display across devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <!-- Add style for health bar visibility -->
+    <!-- Enhanced responsive styles for consistent game display -->
     <style>
       #unity-container {
         padding-top: 50px !important;
+      }
+      
+      /* Responsive scaling for different device sizes */
+      @media screen and (max-width: 360px) {
+        #unity-container { transform: scale(0.9); transform-origin: top center; }
+      }
+      
+      @media screen and (min-width: 361px) and (max-width: 480px) {
+        #unity-container { transform: scale(0.95); transform-origin: top center; }
+      }
+      
+      /* Ensure content is centered */
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
       }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes"><!-- iOS full-screen mode -->
@@ -309,18 +330,43 @@
         var containerWidth = window.innerWidth;
         var containerHeight = window.innerHeight;
         
-        // Mobile-specific implementation that shifts viewport to show health bar
-        // First, set the Unity container to fill the screen but with a fixed height ratio
+        // Enhanced mobile implementation with better cross-device compatibility
         var screenWidth = window.innerWidth;
         var screenHeight = window.innerHeight;
+        var containerWidth, containerHeight, scaleFactor;
         
-        // Set the container to fill width and have a specific height
-        document.querySelector("#unity-container").style.width = screenWidth + 'px';
-        document.querySelector("#unity-container").style.height = (screenHeight - 50) + 'px'; // Reduce height to show health bar
-        document.querySelector("#unity-container").style.position = 'absolute';
-        document.querySelector("#unity-container").style.top = '50px'; // Add top margin for health bar
-        document.querySelector("#unity-container").style.left = '0';
-        document.querySelector("#unity-container").style.margin = '0';
+        // Use aspect ratio to calculate proper dimensions
+        var gameAspectRatio = 16/9; // Standard game aspect ratio
+        var deviceAspectRatio = screenWidth / screenHeight;
+        
+        // Calculate the best container size based on device aspect ratio
+        if (deviceAspectRatio > gameAspectRatio) {
+          // Width is the limiting factor
+          containerHeight = screenHeight - 50; // Reserve space for health bar
+          containerWidth = containerHeight * gameAspectRatio;
+        } else {
+          // Height is the limiting factor
+          containerWidth = screenWidth;
+          containerHeight = (containerWidth / gameAspectRatio) - 50; // Reserve space for health bar
+        }
+        
+        // Set container size and positioning
+        var container = document.querySelector("#unity-container");
+        container.style.width = containerWidth + 'px';
+        container.style.height = containerHeight + 'px';
+        container.style.position = 'absolute';
+        container.style.top = '50px'; // Space for health bar
+        container.style.left = '50%'; // Center horizontally
+        container.style.transform = 'translateX(-50%)'; // Center alignment
+        container.style.margin = '0';
+        container.style.overflow = 'hidden'; // Hide overflow
+        
+        // Determine if we need additional scaling for very small screens
+        if (screenWidth < 400) {
+          scaleFactor = screenWidth / 400;
+          container.style.transform = 'translateX(-50%) scale(' + scaleFactor + ')';
+          container.style.transformOrigin = 'top center';
+        }
         
         // Set the canvas to fill the container
         canvas.style.width = '100%';
@@ -334,14 +380,11 @@
         healthBarSpace.style.left = '0';
         healthBarSpace.style.width = '100%';
         healthBarSpace.style.height = '50px';
-        healthBarSpace.style.backgroundColor = 'rgba(0,0,0,0)'; // Transparent
-        healthBarSpace.style.zIndex = '1'; // Above unity container
-        document.body.insertBefore(healthBarSpace, document.querySelector("#unity-container"));
+        healthBarSpace.style.backgroundColor = 'rgba(0,0,0,0)';
+        healthBarSpace.style.zIndex = '1';
+        document.body.insertBefore(healthBarSpace, container);
         
-        // Create a viewport mask
-        document.querySelector("#unity-container").style.overflow = 'hidden';
-        
-        // Important: Move the canvas up to show the health bar
+        // Move the canvas up to show the health bar
         canvas.style.position = 'absolute';
         canvas.style.top = '-50px'; // Move up to reveal health bar
         canvas.style.left = '0';
@@ -371,15 +414,37 @@
         // Set background color to avoid white screen
         document.body.style.backgroundColor = '#000000';
         
-        // Add window resize handler that maintains the viewport adjustment
+        // Enhanced window resize handler for better responsiveness
         window.addEventListener('resize', function() {
           var screenWidth = window.innerWidth;
           var screenHeight = window.innerHeight;
+          var containerWidth, containerHeight, scaleFactor;
+          var container = document.querySelector("#unity-container");
           
-          // Update container dimensions
-          document.querySelector("#unity-container").style.width = screenWidth + 'px';
-          document.querySelector("#unity-container").style.height = (screenHeight - 50) + 'px';
-          document.querySelector("#unity-container").style.top = '50px';
+          // Recalculate dimensions using aspect ratio
+          var gameAspectRatio = 16/9;
+          var deviceAspectRatio = screenWidth / screenHeight;
+          
+          if (deviceAspectRatio > gameAspectRatio) {
+            containerHeight = screenHeight - 50;
+            containerWidth = containerHeight * gameAspectRatio;
+          } else {
+            containerWidth = screenWidth;
+            containerHeight = (containerWidth / gameAspectRatio) - 50;
+          }
+          
+          // Update container dimensions and positioning
+          container.style.width = containerWidth + 'px';
+          container.style.height = containerHeight + 'px';
+          container.style.top = '50px';
+          
+          // Apply scaling for small screens
+          if (screenWidth < 400) {
+            scaleFactor = screenWidth / 400;
+            container.style.transform = 'translateX(-50%) scale(' + scaleFactor + ')';
+          } else {
+            container.style.transform = 'translateX(-50%)';
+          }
         });
         
         // Adjust for health bar visibility on mobile
@@ -394,11 +459,20 @@
 
 
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen
         canvas.style.width = "960px";
         canvas.style.height = "600px";
-        document.querySelector("#unity-container").style.margin = '0 auto';
-        document.querySelector("#unity-container").style.position = 'relative';
+        var container = document.querySelector("#unity-container");
+        container.style.margin = '0 auto';
+        container.style.position = 'relative';
+        container.style.maxWidth = '100%'; // Ensure it doesn't overflow on smaller screens
+        
+        // Add responsive behavior for smaller desktop screens
+        if (window.innerWidth < 960) {
+          var scale = window.innerWidth / 960;
+          canvas.style.width = (window.innerWidth) + 'px';
+          canvas.style.height = (600 * scale) + 'px';
+        }
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
