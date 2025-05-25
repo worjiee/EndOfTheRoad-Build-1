@@ -6,12 +6,8 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Add fullscreen meta tag for better mobile experience -->
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
-    <!-- Force landscape orientation on mobile devices -->
-    <meta name="screen-orientation" content="landscape">
-    <meta name="x5-orientation" content="landscape"><!-- QQ Browser -->
-    <meta name="msapplication-orientation" content="landscape"><!-- IE/Edge -->
+    <!-- Force desktop site view on mobile devices -->
+    <meta name="viewport" content="width=1280, height=800, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes"><!-- iOS full-screen mode -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- iOS status bar -->
     <!-- Firebase SDK -->
@@ -75,31 +71,11 @@
   </head>
   <body>
     <script>
-      // Lock screen orientation to landscape if supported
-      function lockScreenOrientation() {
-        try {
-          // Try the Screen Orientation API
-          if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(function(error) {
-              console.log('Screen orientation lock error:', error);
-            });
-          }
-          // For iOS Safari which doesn't support the Screen Orientation API
-          else if (window.orientation !== undefined) {
-            // We can't force it, but we can detect orientation changes
-            window.addEventListener('orientationchange', function() {
-              if (window.orientation !== 90 && window.orientation !== -90) {
-                alert('Please rotate your device to landscape mode for the best experience');
-              }
-            });
-            // Check initial orientation
-            if (window.orientation !== 90 && window.orientation !== -90) {
-              alert('Please rotate your device to landscape mode for the best experience');
-            }
-          }
-        } catch (e) {
-          console.error('Error in orientation handling:', e);
-        }
+      // Function to request desktop site view on mobile
+      function requestDesktopSite() {
+        // This is just a placeholder function now that we're using viewport meta tag
+        // No need to do anything special since we've set the viewport meta tag to desktop width
+        console.log("Using desktop site view");
       }
     </script>
     <!-- Game Lock Overlay -->
@@ -184,9 +160,9 @@
               lockOverlay.style.display = 'none';
               unlockMessage.textContent = "";
               
-              // Force landscape orientation on mobile
+              // Use desktop site on mobile
               if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                lockScreenOrientation();
+                requestDesktopSite();
               }
               
               // If Unity is already loaded, send message to reset/start game
@@ -351,9 +327,9 @@
           document.querySelector("#unity-container").style.height = '100vh';
         });
         
-        // Try to lock screen orientation if supported
+        // Request desktop site view on mobile
         if (!gameLocked) {
-          lockScreenOrientation();
+          requestDesktopSite();
         }
 
         // To lower canvas resolution on mobile devices to gain some
@@ -419,9 +395,9 @@
                     // Then set Unity fullscreen
                     unityInstance.SetFullscreen(1);
                     
-                    // Force landscape orientation on mobile if not locked
+                    // Request desktop site on mobile if not locked
                     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                      lockScreenOrientation();
+                      requestDesktopSite();
                     }
                   }, 1000); // Small delay to ensure everything is loaded
                 }
