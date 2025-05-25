@@ -6,8 +6,8 @@
     <title>Unity Web Player | End of the Road</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Force desktop site view on mobile devices -->
-    <meta name="viewport" content="width=1280, height=800, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Force desktop site view on mobile devices with adjusted scaling for health bar visibility -->
+    <meta name="viewport" content="width=1280, height=1024, initial-scale=0.8, maximum-scale=1.0, user-scalable=yes">
     <meta name="apple-mobile-web-app-capable" content="yes"><!-- iOS full-screen mode -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- iOS status bar -->
     <!-- Firebase SDK -->
@@ -273,7 +273,7 @@
       // Set this to false if you want to decouple this synchronization from
       // happening inside the engine, and you would instead like to size up
       // the canvas DOM size and WebGL render target sizes yourself.
-      config.matchWebGLToCanvasSize = true; // Set to true for fullscreen
+      config.matchWebGLToCanvasSize = true; // Set to true but we'll adjust the canvas size
 
       // If you would like all file writes inside Unity Application.persistentDataPath
       // directory to automatically persist so that the contents are remembered when
@@ -294,37 +294,45 @@
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
         
-        // Fill the entire screen on mobile devices
+        // Set up for mobile with adjusted view to show health bar
         var containerWidth = window.innerWidth;
         var containerHeight = window.innerHeight;
         
-        // Set canvas to fill entire screen
+        // Apply scaled dimensions to ensure all UI elements are visible, especially the health bar
         canvas.style.width = '100vw';
-        canvas.style.height = '100vh';
+        canvas.style.height = '92vh'; // Even smaller height to ensure top elements are visible
         
-        // Make container fill the screen
+        // Make container fill the screen with adjusted position
         document.querySelector("#unity-container").style.width = '100vw';
-        document.querySelector("#unity-container").style.height = '100vh';
+        document.querySelector("#unity-container").style.height = '92vh';
         document.querySelector("#unity-container").style.margin = '0';
         document.querySelector("#unity-container").style.position = 'fixed';
-        document.querySelector("#unity-container").style.top = '0';
+        document.querySelector("#unity-container").style.top = '4vh'; // Add a larger margin at the top for the health bar
         document.querySelector("#unity-container").style.left = '0';
         
-        // Set Unity canvas element style to fill the screen
+        // Set Unity canvas element style
         canvas.style.position = 'absolute';
         canvas.style.left = '0';
         canvas.style.top = '0';
         
+        // Add stronger zoom out effect to show more of the game area, including health bar
+        document.body.style.zoom = '0.9';
+        
+        // Add CSS transform for additional zoom out if needed
+        canvas.style.transform = 'scale(0.95)';
+        canvas.style.transformOrigin = 'top center';
+        
         // Set background color to avoid white screen
         document.body.style.backgroundColor = '#000000';
         
-        // Add window resize handler to maintain full screen
+        // Add window resize handler to maintain adjusted screen view
         window.addEventListener('resize', function() {
-          // Update to fill the entire screen
+          // Update with adjusted dimensions to ensure health bar visibility
           canvas.style.width = '100vw';
-          canvas.style.height = '100vh';
+          canvas.style.height = '92vh';
           document.querySelector("#unity-container").style.width = '100vw';
-          document.querySelector("#unity-container").style.height = '100vh';
+          document.querySelector("#unity-container").style.height = '92vh';
+          document.querySelector("#unity-container").style.top = '4vh';
         });
         
         // Request desktop site view on mobile
